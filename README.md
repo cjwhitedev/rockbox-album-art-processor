@@ -64,7 +64,13 @@ Needs fix:   ./Artist C/Album 2/cover.jpg (1200x1200, progressive)
 Extra:       ./Artist D/Album 4/albumart.jpg
 ```
 
-Folders that are already fine aren't listed, so no output means every album is ready.
+Folders that are already fine aren't listed. If nothing needs attention, the script says so instead:
+
+```
+All good: every album folder has a cover.jpg ready for Rockbox (412 checked).
+```
+
+If it prints `No album folders found`, check the path: the folder has no audio files in it or below it.
 
 | Label         | Meaning                                                                         |
 | ------------- | ------------------------------------------------------------------------------- |

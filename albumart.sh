@@ -53,14 +53,14 @@ fix_art() {
   mv -f -- "$tmp" "$target"
 }
 
-find "$root" -type f \( -iname '*.mp3' -o -iname '*.flac' -o -iname '*.m4a' \
-  -o -iname '*.ogg' -o -iname '*.opus' -o -iname '*.wav' -o -iname '*.aac' \
-  -o -iname '*.wma' -o -iname '*.ape' -o -iname '*.wv' -o -iname '*.mpc' \) |
-  sed 's|/[^/]*$||' | sort -u |
+report() { printf '%-12s %s\n' "$1" "$2"; reported=1; }
+
+albums=0 reported=0
 while IFS= read -r dir; do
+  albums=$((albums + 1))
   find_art "$dir"
   if (( ${#art[@]} == 0 )); then
-    echo "Missing:     $dir"
+    report Missing: "$dir"
     continue
   fi
 
@@ -76,18 +76,27 @@ while IFS= read -r dir; do
   issues="${issues#, }"
 
   if [[ -z "$width" ]]; then
-    echo "Unreadable:  $src"
+    report Unreadable: "$src"
   elif [[ -n "$issues" ]]; then
     if [[ "$mode" == check ]]; then
-      echo "Needs fix:   $src ($issues)"
+      report "Needs fix:" "$src ($issues)"
     elif fix_art "$src" "$dir" "$issues"; then
-      echo "Fixed:       $src ($issues)"
+      report Fixed: "$src ($issues)"
     else
-      echo "FAILED:      $src ($issues)"
+      report FAILED: "$src ($issues)"
     fi
   fi
 
   for extra in "${art[@]:1}"; do
-    echo "Extra:       $extra"
+    report Extra: "$extra"
   done
-done
+done < <(find "$root" -type f \( -iname '*.mp3' -o -iname '*.flac' -o -iname '*.m4a' \
+  -o -iname '*.ogg' -o -iname '*.opus' -o -iname '*.wav' -o -iname '*.aac' \
+  -o -iname '*.wma' -o -iname '*.ape' -o -iname '*.wv' -o -iname '*.mpc' \) |
+  sed 's|/[^/]*$||' | sort -u)
+
+if (( albums == 0 )); then
+  echo "No album folders found in $root"
+elif (( ! reported )); then
+  echo "All good: every album folder has a cover.jpg ready for Rockbox ($albums checked)."
+fi
